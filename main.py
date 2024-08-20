@@ -3,9 +3,9 @@ import sys
 registradores = {
     'AC': 0,
     'MQ': 0,
-    'C': 0,
-    'Z': 0,
-    'R': 0,
+    'C': None,
+    'Z': None,
+    'R': None,
     'PC': 0,
     'IR': '',
     'MAR': '',
@@ -30,6 +30,10 @@ def criar_memoria():
 
     return memoria
 
+def imprime_registradores():
+    print(f"AC: {registradores['AC']} MQ: {registradores['MQ']} C: {registradores['C']} R: {registradores['R']} Z: {registradores['Z']} A: {registradores['A']} B: {registradores['B']} ")
+    print(f"MAR: {registradores['MAR']} MBR: {registradores['MBR']} IR: {registradores['IR']} PC: {hex(registradores['PC'])}")
+    
 def escreve_valores_memoria(arq, memoria):
     linha = arq.readline()
     while linha != '\n':
@@ -44,9 +48,9 @@ def escreve_valores_memoria(arq, memoria):
         memoria.seek(0)
         linha = arq.readline()
 
-def escreve_instrucoes_memoria(arq, memoria, primeira_instrucao):
-    offset = (TAM_LINHA * primeira_instrucao) + ENDERECO
-    prox_inst = primeira_instrucao + 1
+def escreve_instrucoes_memoria(arq, memoria, primeira_instrucao_endereco):
+    offset = (TAM_LINHA * primeira_instrucao_endereco) + ENDERECO
+    prox_inst = primeira_instrucao_endereco + 1
     num_instrucoes = 0
     for linha in arq:
         memoria.seek(offset)
@@ -59,25 +63,24 @@ def escreve_instrucoes_memoria(arq, memoria, primeira_instrucao):
 
     return num_instrucoes
 
-def verifica_opcode(opcode, parametros, memoria):
-    if opcode == 'LOAD':
+def verifica_opcode(parametros, memoria):
+    if registradores['IR'] == 'LOAD':
         inst_load(parametros, memoria)
-    elif opcode == 'ADD':
+    elif registradores['IR'] == 'ADD':
         inst_add(parametros, memoria)
-    elif opcode == 'SUB':
+    elif registradores['IR'] == 'SUB':
         inst_sub(parametros, memoria)
-    elif opcode == 'MOV':
+    elif registradores['IR'] == 'MOV':
         inst_mov(parametros)
-    elif opcode == 'STORE':
+    elif registradores['IR'] == 'STORE':
         inst_store(parametros, memoria)
-    elif opcode == 'CMP':
+    elif registradores['IR'] == 'CMP':
         inst_cmp(parametros)
-    elif opcode == 'DIV':
+    elif registradores['IR'] == 'DIV':
         inst_div(parametros, memoria)
-    elif opcode == 'MULT':
+    elif registradores['IR'] == 'MULT':
         inst_mult(parametros, memoria)
 
-    print()
     memoria.seek(0)
     
 def inst_store(parametros, memoria):
@@ -92,16 +95,12 @@ def inst_store(parametros, memoria):
 
         memoria.write(str(registradores[registrador]).encode())
 
-    print(f'Store a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
-
 def inst_mov(parametros):
     if len(parametros) == 2:
         registrador_destino = parametros[0].upper()
         registrador_valor_origem = parametros[1].upper()
 
         registradores[registrador_destino] = registradores[registrador_valor_origem]
-
-    print(f'Mov a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
 
 def inst_add(parametros, memoria):
     if len(parametros) == 1:
@@ -121,7 +120,6 @@ def inst_add(parametros, memoria):
 
         registradores[registrador] += valor
 
-    print(f'Add a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
 
 def inst_sub(parametros, memoria):
     if len(parametros) == 1:
@@ -139,7 +137,6 @@ def inst_sub(parametros, memoria):
             valor = int(parametros[1])
 
         registradores[registrador] -= valor
-    print(f'Sub a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
 
 def inst_mult(parametros, memoria):
     if len(parametros) == 1:
@@ -156,8 +153,6 @@ def inst_mult(parametros, memoria):
 
         registradores[registrador] *= valor
 
-    print(f'Mult a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
-
 def inst_div(parametros, memoria):
     if len(parametros) == 1:
         endereco_operando = int(parametros[0], 16)
@@ -172,8 +167,6 @@ def inst_div(parametros, memoria):
         registrador = parametros[0].upper()
 
         registradores[registrador] = int(registradores[registrador] / valor)
-
-    print(f'Div a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
 
 def inst_load(parametros: list, memoria):
     if len(parametros) == 1:
@@ -190,28 +183,30 @@ def inst_load(parametros: list, memoria):
 
         registradores[registrador] = valor
 
-    print(f'Load a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
-
-def executa_instrucoes(memoria, endereco_instrucao, num_instrucoes):
-    offset = TAM_LINHA * endereco_instrucao + ENDERECO
-    pc = endereco_instrucao + 1
+def executa_instrucoes(memoria, primeira_instrucao_endereco, num_instrucoes):
+    
+    registradores['PC'] = primeira_instrucao_endereco
     for i in range(num_instrucoes):
+        offset_endereco = TAM_LINHA * registradores['PC'] + ENDERECO
         memoria.seek(0)
-        memoria.seek(offset)
-        instrucao = memoria.readline().decode().rstrip().split()
-
-        print(instrucao)
+        memoria.seek(offset_endereco)
+        instrucao = memoria.readline().decode().rstrip()
         
-        instrucao = instrucao.split()
-        opcode = instrucao[0]
+        elementos_instrucao = instrucao.split()
+        registradores['IR'] = elementos_instrucao[0]
         parametros = []
-        for i in range(1, len(instrucao)):
-            parametros.append(instrucao[i].rstrip(','))
+        for i in range(1, len(elementos_instrucao)):
+            parametros.append(elementos_instrucao[i].rstrip(','))
         
-        verifica_opcode(opcode, parametros, memoria)
-        offset = TAM_LINHA * pc + ENDERECO
-        pc+=1
+        verifica_opcode(parametros, memoria)
         
+        print(instrucao)
+        while True:
+            imprime_registradores()
+            if inp := input('Pressione <ENTER> para continuar...\n') == '':
+                break
+        
+        registradores['PC']+=1
 def inst_cmp(parametros):
     if len(parametros) == 2:
         pass
@@ -241,9 +236,7 @@ def main(nargs: int, args: list[str]) -> None:
                 raise Exception(f"Flag {flag} inválida.\n{modo_uso}")
             else:
                 memoria = criar_memoria()
-                print(f'a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
                 le_operacoes(arq, memoria)
-                print(f'a: {registradores['A']} b: {registradores['B']} ac: {registradores['AC']} mq: {registradores['MQ']}')
                 memoria.close()
         else:
             raise Exception(f"Número incorreto de argumentos.\n{modo_uso}")
