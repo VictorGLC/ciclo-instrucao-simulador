@@ -1,12 +1,11 @@
 def main():
     arq = open('memoria.data','w+b')
     for i in range(1024):
-        mem = f'0x{hex(i)[2:].zfill(3)}'
+        mem = f'0x{hex(i)[2:].zfill(3)}'.encode()
         arq.write(mem)
-        arq.write(' ')
-        espaco = ' ' * 40
+        arq.write(' '.encode())
+        espaco = ((' ' * 40) + '\n').encode()
         arq.write(espaco)
-        arq.write('\n')
 
     arq.seek(0)
 

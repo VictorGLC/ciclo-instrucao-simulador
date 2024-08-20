@@ -1,19 +1,19 @@
 0x000                                  
-0x001                                  
-0x002 3                                
-0x003                                  
+0x001 7                                
+0x002                                  
+0x003 12                               
 0x004                                  
-0x005 4                                
-0x006 10                               
-0x007                                  
-0x008                                  
-0x009                                  
-0x00a LOAD A, 0x05                     
-0x00b ADD A, 0x02                      
-0x00c MOV B, A                         
-0x00d MULT B, 0x06                     
-0x00e ADD B, 5                         
-0x00f STORE B, 0x1                     
+0x005 8                                
+0x006                                  
+0x007 15                               
+0x008 LOAD A, 0x01                     
+0x009 SUB A, 0x03                      
+0x00a MOV B, A                         
+0x00b DIV B, 0x07                      
+0x00c ADD B, 8                         
+0x00d STORE B, 0x00f                   
+0x00e                                  
+0x00f 8                                
 0x010                                  
 0x011                                  
 0x012                                  
@@ -1021,4 +1021,4 @@
 0x3fc                                  
 0x3fd                                  
 0x3fe                                  
-0x3ff 12                               
+0x3ff                                  
