@@ -10,8 +10,8 @@ registradores = {
     'IR': '',
     'MAR': '',
     'MBR': '',
-    'A': 0,
-    'B': 0,
+    'A': 0, # registrador extra
+    'B': 0, # registrador extra
 }
 
 TAM_LINHA = 40
@@ -31,8 +31,8 @@ def criar_memoria():
     return memoria
 
 def imprime_registradores():
-    print(f"AC: {registradores['AC']} MQ: {registradores['MQ']} C: {registradores['C']} R: {registradores['R']} Z: {registradores['Z']} A: {registradores['A']} B: {registradores['B']} ")
-    print(f"MAR: {registradores['MAR']} MBR: {registradores['MBR']} IR: {registradores['IR']} PC: {hex(registradores['PC'])}")
+    print(f"AC: {registradores['AC']} | MQ: {registradores['MQ']} | C: {registradores['C']} | R: {registradores['R']} | Z: {registradores['Z']} | A: {registradores['A']} | B: {registradores['B']} ")
+    print(f"MAR: {hex(registradores['MAR'])} | MBR: {registradores['MBR']} | IR: {registradores['IR']} | PC: {registradores['PC']}")
     
 def escreve_valores_memoria(arq, memoria):
     linha = arq.readline()
@@ -48,9 +48,9 @@ def escreve_valores_memoria(arq, memoria):
         memoria.seek(0)
         linha = arq.readline()
 
-def escreve_instrucoes_memoria(arq, memoria, primeira_instrucao_endereco):
-    offset = (TAM_LINHA * primeira_instrucao_endereco) + ENDERECO
-    prox_inst = primeira_instrucao_endereco + 1
+def escreve_instrucoes_memoria(arq, memoria):
+    offset = (TAM_LINHA * registradores['PC']) + ENDERECO
+    prox_inst = registradores['PC'] + 1
     num_instrucoes = 0
     for linha in arq:
         memoria.seek(offset)
@@ -183,16 +183,15 @@ def inst_load(parametros: list, memoria):
 
         registradores[registrador] = valor
 
-def executa_instrucoes(memoria, primeira_instrucao_endereco, num_instrucoes):
-    
-    registradores['PC'] = primeira_instrucao_endereco
+def executa_instrucoes(memoria, num_instrucoes):
+    registradores['MAR'] = registradores['PC']
     for i in range(num_instrucoes):
-        offset_endereco = TAM_LINHA * registradores['PC'] + ENDERECO
+        offset_endereco = TAM_LINHA * registradores['MAR'] + ENDERECO
         memoria.seek(0)
         memoria.seek(offset_endereco)
-        instrucao = memoria.readline().decode().rstrip()
-        
-        elementos_instrucao = instrucao.split()
+        registradores['MBR'] = memoria.readline().decode().rstrip()
+
+        elementos_instrucao = registradores['MBR'].split()
         registradores['IR'] = elementos_instrucao[0]
         parametros = []
         for i in range(1, len(elementos_instrucao)):
@@ -200,13 +199,15 @@ def executa_instrucoes(memoria, primeira_instrucao_endereco, num_instrucoes):
         
         verifica_opcode(parametros, memoria)
         
-        print(instrucao)
+        print(registradores['MBR'])
         while True:
             imprime_registradores()
             if inp := input('Pressione <ENTER> para continuar...\n') == '':
                 break
         
         registradores['PC']+=1
+        registradores['MAR'] = registradores['PC']
+
 def inst_cmp(parametros):
     if len(parametros) == 2:
         pass
@@ -214,12 +215,12 @@ def inst_cmp(parametros):
 def le_operacoes(arq, memoria):
     escreve_valores_memoria(arq, memoria)
 
-    primeira_instrucao = int(arq.readline(), 16)
+    registradores['PC'] = int(arq.readline(), 16)
     memoria.seek(0)
 
-    num_instrucoes = escreve_instrucoes_memoria(arq, memoria, primeira_instrucao)
+    num_instrucoes = escreve_instrucoes_memoria(arq, memoria)
     
-    executa_instrucoes(memoria, primeira_instrucao, num_instrucoes)
+    executa_instrucoes(memoria, num_instrucoes)
 
 def main(nargs: int, args: list[str]) -> None:
     try:
