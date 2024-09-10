@@ -16,10 +16,10 @@
 0x00f MULT 0x103        
 0x010 LOAD MQ           
 0x011 ADD 0x09F         
-0x012 HALT              
-0x013                   
-0x014                   
-0x015                   
+0x012 STORE 0X09F       
+0x013 LOAD MQ, 0x09F    
+0x014 DIV 0x102         
+0x015 END               
 0x016                   
 0x017                   
 0x018                   
@@ -157,7 +157,7 @@
 0x09c                   
 0x09d                   
 0x09e                   
-0x09f 705               
+0x09f 21382             
 0x0a0                   
 0x0a1                   
 0x0a2                   

@@ -20,7 +20,7 @@ ENDERECO = 6 # tamanho para que comece a palavra de memoria
 VALOR_MAX = 2**40 - 1
 
 def verifica_hex(valor):
-    return valor.startswith('0x')
+    return '0x' in valor.lower()
 
 def verifica_registrador(valor):
     return valor.upper() in registradores
@@ -107,23 +107,25 @@ def operacao_dados(enderecos, memoria):
     decodificacao_instrucao(enderecos, memoria)
     if registradores['IR'] == 'LOAD' and len(enderecos) > 0 and len(enderecos) <= 2:
         load(enderecos)
-    elif registradores['IR'] == 'ADD':
-        add()
-    elif registradores['IR'] == 'SUB':
-        sub()
     elif registradores['IR'] == 'STORE':
         store(enderecos, memoria)
-    elif registradores['IR'] == 'DIV':
-        div()
-    elif registradores['IR'] == 'MULT':
-        mult()
-    elif registradores['IR'] == 'JUMP+':
-        jump_plus(enderecos[0])
-    elif registradores['IR'] == 'JUMP-':
-        jump_minus(enderecos[0])
-    elif registradores['IR'] == 'JUMP':
-        jump(enderecos[0])
-
+    elif len(enderecos) == 1:
+        if registradores['IR'] == 'ADD':
+            add()
+        elif registradores['IR'] == 'SUB':
+            sub()
+        elif registradores['IR'] == 'DIV':
+            div()
+        elif registradores['IR'] == 'MULT':
+            mult()
+        elif registradores['IR'] == 'JUMP+':
+            jump_plus(enderecos[0])
+        elif registradores['IR'] == 'JUMP-':
+            jump_minus(enderecos[0])
+        elif registradores['IR'] == 'JUMP':
+            jump(enderecos[0])
+    else:
+        raise Exception("Erro no formato das instrucoes.")
     memoria.seek(0)
 
 def jump_plus(endereco):
@@ -143,14 +145,12 @@ def jump(endereco):
 def store(enderecos, memoria):
     memoria.seek(0)
     memoria.seek(registradores['MAR'] * TAM_LINHA + ENDERECO)
-    if len(enderecos) == 2:
-        if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]):
-            registradores[enderecos[0].upper()] = registradores['MBR']
-    elif len(enderecos) == 1:
-        if verifica_registrador(enderecos[0]):
-            registradores[enderecos[0].upper()] = registradores['AC']
-        elif verifica_hex(enderecos[0]):
+    if len(enderecos) == 1:
+        if verifica_hex(enderecos[0]): # se STORE <endereco>
             memoria.write(str(registradores['AC']).encode())
+        elif not verifica_hex(enderecos[0]): # se STORE <valor>
+            memoria.write(str[enderecos[0]].encode())
+
 def add():
     a = registradores['AC']
     b = int(registradores['MBR'])
@@ -202,30 +202,34 @@ def simula_divisao(a, b):
     return quociente, resto, False
  
 def load(enderecos: list):
+
     if len(enderecos) == 1 and verifica_registrador(enderecos[0]): # se LOAD <registrador>
-        registradores[enderecos[0].upper()] = registradores['AC']
+        registradores['AC'] = registradores[enderecos[0].upper()]
 
     elif len(enderecos) == 1 and verifica_hex(enderecos[0]): # se LOAD M(x)
         registradores['AC'] = int(registradores['MBR'])
-
-    elif len(enderecos) == 2 and enderecos[0].upper() == 'MQ' and verifica_hex(enderecos[1]): # se LOAD MQ, M(x)
-        registradores['MQ'] = int(registradores['MBR'])
+    
+    elif len(enderecos) == 1 and not verifica_hex(enderecos[0]): # se LOAD <valor>
+        registradores['AC'] = int(enderecos[0])
 
     elif len(enderecos) == 2 and verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # se LOAD <registrador>, M(X)
         registradores[enderecos[0].upper()] = int(registradores['MBR'])
 
+    elif len(enderecos) == 2 and verifica_registrador(enderecos[0]) and not verifica_hex(enderecos[1]): # se LOAD <registrador>, <valor>
+        registradores[enderecos[0].upper()] = int(enderecos[1])
+
 def decodificacao_instrucao(enderecos, memoria):
-    if len(enderecos) == 2:
-        if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]):
+    if len(enderecos) == 2 and registradores['IR'] == 'LOAD':
+        if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # caso <registrador>, <memoria>
             registradores['MAR'] = int(enderecos[1], 16)
             memoria.seek(TAM_LINHA*registradores['MAR']+ENDERECO)
             registradores['MBR'] = memoria.readline().decode().rstrip()
 
-        elif not verifica_hex(enderecos[1]):
+        elif verifica_registrador(enderecos[0]) and not verifica_hex(enderecos[1]): # caso <registrador>, <valor numerico>
             registradores['MBR'] = enderecos[1]
 
     if len(enderecos) == 1 and verifica_registrador(enderecos[0]) and registradores['IR'] != 'LOAD':
-            registradores['MBR'] = str(registradores[enderecos[0].upper()])
+        registradores['MBR'] = str(registradores[enderecos[0].upper()])
 
     elif len(enderecos) == 1 and verifica_hex(enderecos[0]):
         registradores['MAR'] = int(enderecos[0], 16)
