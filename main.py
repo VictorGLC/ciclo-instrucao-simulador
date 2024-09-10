@@ -105,15 +105,15 @@ def escreve_instrucoes_memoria(arq, memoria):
 
 def operacao_dados(enderecos, memoria):
     decodificacao_instrucao(enderecos, memoria)
-    if registradores['IR'] == 'LOAD' and len(enderecos) > 0 and len(enderecos) <= 2:
+    if registradores['IR'] == 'LOAD':
         load(enderecos)
-    elif registradores['IR'] == 'STORE':
-        store(enderecos, memoria)
     elif len(enderecos) == 1:
         if registradores['IR'] == 'ADD':
             add()
         elif registradores['IR'] == 'SUB':
             sub()
+        elif registradores['IR'] == 'STORE':
+            store(enderecos[0], memoria)
         elif registradores['IR'] == 'DIV':
             div()
         elif registradores['IR'] == 'MULT':
@@ -149,14 +149,13 @@ def jumpz(endereco):
         registradores['PC'] = int(endereco[0], 16)
         registradores['MAR'] = registradores['PC']
 
-def store(enderecos, memoria):
+def store(endereco, memoria):
     memoria.seek(0)
     memoria.seek(registradores['MAR'] * TAM_LINHA + ENDERECO)
-    if len(enderecos) == 1:
-        if verifica_hex(enderecos[0]): # se STORE <endereco>
-            memoria.write(str(registradores['AC']).encode())
-        elif not verifica_hex(enderecos[0]): # se STORE <valor>
-            memoria.write(str[enderecos[0]].encode())
+    if verifica_hex(endereco): # se STORE <endereco>
+        memoria.write(str(registradores['AC']).encode())
+    elif not verifica_hex(endereco): # se STORE <valor>
+        memoria.write(str(endereco).encode())
 
 def add():
     a = registradores['AC']
@@ -213,23 +212,18 @@ def load(enderecos: list):
         if verifica_registrador(enderecos[0]): # se LOAD <registrador>
             registradores['AC'] = registradores[enderecos[0].upper()]
 
-        elif verifica_hex(enderecos[0]): # se LOAD M(x)
+        else: # se LOAD M(x) ou LOAD <valor>
             registradores['AC'] = int(registradores['MBR'])
-        
-        elif not verifica_hex(enderecos[0]): # se LOAD <valor>
-            registradores['AC'] = int(enderecos[0])
-    elif len(enderecos) == 2:
-        if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # se LOAD <registrador>, M(X)
-            registradores[enderecos[0].upper()] = int(registradores['MBR'])
 
-        elif verifica_registrador(enderecos[0]) and not verifica_hex(enderecos[1]): # se LOAD <registrador>, <valor>
-            registradores[enderecos[0].upper()] = int(enderecos[1])
+    elif len(enderecos) == 2:
+        if verifica_registrador(enderecos[0]): # se LOAD <registrador>, M(X) ou LOAD <registrador>, <valor>
+            registradores[enderecos[0].upper()] = int(registradores['MBR'])
     else:
         raise Exception("ERRO: Instrução 'LOAD' inválida")
 
 def decodificacao_instrucao(enderecos, memoria):
     if len(enderecos) == 2 and registradores['IR'] == 'LOAD':
-        if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # caso <registrador>, <memoria>
+        if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # caso <registrador>, M(X)
             registradores['MAR'] = int(enderecos[1], 16)
             memoria.seek(TAM_LINHA*registradores['MAR']+ENDERECO)
             registradores['MBR'] = memoria.readline().decode().rstrip()
