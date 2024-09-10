@@ -131,21 +131,21 @@ def operacao_dados(enderecos, memoria):
     memoria.seek(0)
 
 def jump_plus(endereco):
-    if registradores['AC'] > 0:
+    if registradores['AC'] > 0: # se o conteudo de AC for maior que 0, realiza desvio para o endereco
         registradores['PC'] = int(endereco[0], 16)
         registradores['MAR'] = registradores['PC']
 
 def jump_minus(endereco):
-    if registradores['AC'] < 0:
+    if registradores['AC'] < 0: # se o conteudo de AC for menor que 0, realiza desvio para o endereco
         registradores['PC'] = int(endereco[0], 16)
         registradores['MAR'] = registradores['PC']
 
-def jump(endereco):
+def jump(endereco): # realiza desvio para o endereco dado
     registradores['PC'] = int(endereco[0], 16)
     registradores['MAR'] = registradores['PC']
 
 def jumpz(endereco):
-    if registradores['AC'] == 0:
+    if registradores['AC'] == 0: # se o conteudo de AC for igual a 0, realiza desvio para o endereco
         registradores['PC'] = int(endereco[0], 16)
         registradores['MAR'] = registradores['PC']
 
@@ -196,7 +196,7 @@ def div():
 
 def simula_divisao(a, b):
     if b == 0: # trata divisao por zero
-        return None, None, True
+        raise Exception("Erro: Divisão por zero.")
     
     quociente = a // b
     resto = a % b
@@ -209,21 +209,23 @@ def simula_divisao(a, b):
     return quociente, resto, False
  
 def load(enderecos: list):
+    if len(enderecos) == 1:
+        if verifica_registrador(enderecos[0]): # se LOAD <registrador>
+            registradores['AC'] = registradores[enderecos[0].upper()]
 
-    if len(enderecos) == 1 and verifica_registrador(enderecos[0]): # se LOAD <registrador>
-        registradores['AC'] = registradores[enderecos[0].upper()]
+        elif verifica_hex(enderecos[0]): # se LOAD M(x)
+            registradores['AC'] = int(registradores['MBR'])
+        
+        elif not verifica_hex(enderecos[0]): # se LOAD <valor>
+            registradores['AC'] = int(enderecos[0])
+    elif len(enderecos) == 2:
+        if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # se LOAD <registrador>, M(X)
+            registradores[enderecos[0].upper()] = int(registradores['MBR'])
 
-    elif len(enderecos) == 1 and verifica_hex(enderecos[0]): # se LOAD M(x)
-        registradores['AC'] = int(registradores['MBR'])
-    
-    elif len(enderecos) == 1 and not verifica_hex(enderecos[0]): # se LOAD <valor>
-        registradores['AC'] = int(enderecos[0])
-
-    elif len(enderecos) == 2 and verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # se LOAD <registrador>, M(X)
-        registradores[enderecos[0].upper()] = int(registradores['MBR'])
-
-    elif len(enderecos) == 2 and verifica_registrador(enderecos[0]) and not verifica_hex(enderecos[1]): # se LOAD <registrador>, <valor>
-        registradores[enderecos[0].upper()] = int(enderecos[1])
+        elif verifica_registrador(enderecos[0]) and not verifica_hex(enderecos[1]): # se LOAD <registrador>, <valor>
+            registradores[enderecos[0].upper()] = int(enderecos[1])
+    else:
+        raise Exception("ERRO: Instrução 'LOAD' inválida")
 
 def decodificacao_instrucao(enderecos, memoria):
     if len(enderecos) == 2 and registradores['IR'] == 'LOAD':
@@ -234,17 +236,19 @@ def decodificacao_instrucao(enderecos, memoria):
 
         elif verifica_registrador(enderecos[0]) and not verifica_hex(enderecos[1]): # caso <registrador>, <valor numerico>
             registradores['MBR'] = enderecos[1]
+    elif len(enderecos) == 1:
+        if verifica_registrador(enderecos[0]) and registradores['IR'] != 'LOAD':
+            registradores['MBR'] = str(registradores[enderecos[0].upper()])
 
-    if len(enderecos) == 1 and verifica_registrador(enderecos[0]) and registradores['IR'] != 'LOAD':
-        registradores['MBR'] = str(registradores[enderecos[0].upper()])
-
-    elif len(enderecos) == 1 and verifica_hex(enderecos[0]):
-        registradores['MAR'] = int(enderecos[0], 16)
-        memoria.seek(TAM_LINHA*registradores['MAR']+ENDERECO)
-        registradores['MBR'] = memoria.readline().decode().rstrip()
-    
-    elif len(enderecos) == 1 and not verifica_hex(enderecos[0]):
-        registradores['MBR'] = enderecos[0]
+        elif verifica_hex(enderecos[0]):
+            registradores['MAR'] = int(enderecos[0], 16)
+            memoria.seek(TAM_LINHA*registradores['MAR']+ENDERECO)
+            registradores['MBR'] = memoria.readline().decode().rstrip()
+        
+        elif not verifica_hex(enderecos[0]):
+            registradores['MBR'] = enderecos[0]
+    else:
+        raise Exception("Instrução inválida")
 
 def trata_enderecos(elementos_instrucao):
     enderecos = []
