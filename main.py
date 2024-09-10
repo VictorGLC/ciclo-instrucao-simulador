@@ -124,6 +124,8 @@ def operacao_dados(enderecos, memoria):
             jump_minus(enderecos[0])
         elif registradores['IR'] == 'JUMP':
             jump(enderecos[0])
+        elif registradores['IR'] == 'JUMPZ':
+            jumpz(enderecos[0])
     else:
         raise Exception("Erro no formato das instrucoes.")
     memoria.seek(0)
@@ -141,6 +143,11 @@ def jump_minus(endereco):
 def jump(endereco):
     registradores['PC'] = int(endereco[0], 16)
     registradores['MAR'] = registradores['PC']
+
+def jumpz(endereco):
+    if registradores['AC'] == 0:
+        registradores['PC'] = int(endereco[0], 16)
+        registradores['MAR'] = registradores['PC']
 
 def store(enderecos, memoria):
     memoria.seek(0)
