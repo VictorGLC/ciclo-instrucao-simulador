@@ -153,16 +153,25 @@ def jumpz(endereco):
         registradores['MAR'] = registradores['PC']
 
 def store(endereco, memoria):
-    memoria.seek(0)
-    memoria.seek(registradores['MAR'] * TAM_LINHA + ENDERECO)
     if endereco.upper() == 'EI': # se STORE EI
         memoria.seek(0)
         memoria.seek(int(registradores['EI']) * TAM_LINHA + ENDERECO)
+        memoria.write((' ' * (TAM_LINHA - ENDERECO - 1)).encode()) # apaga o conteudo do endereco
+
+        memoria.seek(0)
+        memoria.seek(int(registradores['EI']) * TAM_LINHA + ENDERECO)
         memoria.write(str(registradores['AC']).encode())
-    elif verifica_hex(endereco): # se STORE <endereco>
-        memoria.write(str(registradores['AC']).encode())
-    elif not verifica_hex(endereco): # se STORE <valor>
-        memoria.write(str(endereco).encode())
+    else:
+        memoria.seek(0)
+        memoria.seek(registradores['MAR'] * TAM_LINHA + ENDERECO)
+        memoria.write((' ' * (TAM_LINHA - ENDERECO - 1)).encode()) # apaga o conteudo do endereco
+
+        memoria.seek(0)
+        memoria.seek(registradores['MAR'] * TAM_LINHA + ENDERECO)
+        if verifica_hex(endereco): # se STORE <endereco>
+            memoria.write(str(registradores['AC']).encode())
+        elif not verifica_hex(endereco): # se STORE <valor>
+            memoria.write(str(endereco).encode())
 
 def add():
     a = registradores['AC']
