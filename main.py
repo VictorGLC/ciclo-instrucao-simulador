@@ -12,7 +12,7 @@ registradores = {
     'MBR': '',
     'EAUX': 0, # registrador extra
     'EBUX': 0, # registrador extra
-    'EI': None
+    'EI': 0 # registrador de enderecamento indireto (criado para realizar o algoritmo de selection sort)
 }
 
 TAM_LINHA = 25 # tamanho total que cada linha da memoria.data possui 
@@ -20,10 +20,10 @@ ENDERECO = 6 # tamanho para que comece a palavra de memoria
 
 VALOR_MAX = 2**40 - 1
 
-def verifica_hex(valor):
+def verifica_hex(valor): # verifica se um argumento esta em hexadecimal
     return '0x' in valor.lower()
 
-def verifica_registrador(valor):
+def verifica_registrador(valor): # verifica se um argumento é um registrador
     return valor.upper() in registradores
 
 def simula_carry_out(a, b, operacao):
@@ -69,10 +69,10 @@ def criar_memoria():
     return memoria
 
 def imprime_registradores():
-    print(f"AC: {registradores['AC']} | MQ: {registradores['MQ']} | C: {registradores['C']} | R: {registradores['R']} | Z: {registradores['Z']} | EAUX: {registradores['EAUX']} | EBUX: {registradores['EBUX']} | EI: {registradores['EI']} ")
+    print(f"AC: {registradores['AC']} | MQ: {registradores['MQ']} | C: {registradores['C']} | R: {registradores['R']} | Z: {registradores['Z']} | EAUX: {registradores['EAUX']} | EBUX: {registradores['EBUX']} | EI: {hex(registradores['EI'])} ")
     print(f"MAR: {hex(registradores['MAR'])} | MBR: {registradores['MBR']} | IR: {registradores['IR']} | PC: {hex(registradores['PC'])}")
     
-def escreve_valores_memoria(arq, memoria):
+def escreve_valores_memoria(arq, memoria): # escreve os valores do arquivo de operações em memoria.data
     linha = arq.readline()
     while linha != '\n':
         linha = linha.split()
@@ -86,13 +86,13 @@ def escreve_valores_memoria(arq, memoria):
         memoria.seek(0)
         linha = arq.readline()
 
-def escreve_instrucoes_memoria(arq, memoria):
+def escreve_instrucoes_memoria(arq, memoria): # escreve as instruções do arquivo de operações em memoria.data
     offset = (TAM_LINHA * registradores['PC']) + ENDERECO
     prox_inst = registradores['PC'] + 1
     num_instrucoes = 0
     for linha in arq:
         memoria.seek(offset)
-        memoria.write(linha.rstrip().encode()) # linha[:-1] para ignorar a escrita do caracter '\n'
+        memoria.write(linha.rstrip().encode())
         offset = (TAM_LINHA * prox_inst) + ENDERECO
         prox_inst = prox_inst + 1
 
@@ -133,31 +133,34 @@ def operacao_dados(enderecos, memoria):
 
 def jump_plus(endereco):
     if registradores['AC'] > 0: # se o conteudo de AC for maior que 0, realiza desvio para o endereco
-        registradores['PC'] = int(endereco[0], 16)
+        registradores['PC'] = int(endereco, 16)-1
         registradores['MAR'] = registradores['PC']
 
 def jump_minus(endereco):
     if registradores['AC'] < 0: # se o conteudo de AC for menor que 0, realiza desvio para o endereco
-        registradores['PC'] = int(endereco[0], 16)
+        registradores['PC'] = int(endereco, 16)-1
         registradores['MAR'] = registradores['PC']
 
 def jump(endereco): # realiza desvio para o endereco dado
-    registradores['PC'] = int(endereco[0], 16)
+    registradores['PC'] = int(endereco, 16)-1
     registradores['MAR'] = registradores['PC']
 
 def jumpz(endereco):
     if registradores['AC'] == 0: # se o conteudo de AC for igual a 0, realiza desvio para o endereco
-        registradores['PC'] = int(endereco[0], 16)
+        registradores['PC'] = int(endereco, 16)-1
         registradores['MAR'] = registradores['PC']
 
 def store(endereco, memoria):
     memoria.seek(0)
     memoria.seek(registradores['MAR'] * TAM_LINHA + ENDERECO)
-    if verifica_hex(endereco): # se STORE <endereco>
+    if endereco.upper() == 'EI': # se STORE EI
+        memoria.seek(0)
+        memoria.seek(int(registradores['EI']) * TAM_LINHA + ENDERECO)
+        memoria.write(str(registradores['AC']).encode())
+    elif verifica_hex(endereco): # se STORE <endereco>
         memoria.write(str(registradores['AC']).encode())
     elif not verifica_hex(endereco): # se STORE <valor>
         memoria.write(str(endereco).encode())
-
 
 def add():
     a = registradores['AC']
@@ -252,7 +255,7 @@ def decodificacao_instrucao(enderecos, memoria):
     else:
         raise Exception("Instrução inválida")
 
-def trata_enderecos(elementos_instrucao):
+def trata_enderecos(elementos_instrucao): # trata os argumento da instrução que a instrução recebe como: LOAD MQ, 0x001
     enderecos = []
     for i in range(1, len(elementos_instrucao)):
         enderecos.append(elementos_instrucao[i].rstrip(','))
@@ -264,7 +267,7 @@ def controle_fluxo_registradores():
         if inp := input('Pressione <ENTER> para continuar...\n') == '':
             break
 
-def ciclo_busca(memoria):
+def ciclo_busca(memoria): # esta função faz a simulação do ciclo de busca da proxima instrução 
     offset_endereco = TAM_LINHA * registradores['MAR'] + ENDERECO
     memoria.seek(0)
     memoria.seek(offset_endereco)
@@ -276,7 +279,7 @@ def ciclo_busca(memoria):
 
     return instrucao
 
-def executa_instrucoes(memoria):
+def executa_instrucoes(memoria): # esta função tem como objetivo simular o ciclo de instruções
     registradores['MAR'] = registradores['PC']
 
     instrucao = ciclo_busca(memoria)

@@ -1,69 +1,69 @@
-0x000                   
-0x001                   
-0x002                   
-0x003                   
-0x004                   
-0x005                   
-0x006                   
+0x000 6                 
+0x001 1                 
+0x002 2                 
+0x003 4                 
+0x004 5                 
+0x005 7                 
+0x006 10                
 0x007                   
 0x008                   
 0x009                   
-0x00a LOAD MQ, 0x100    
-0x00b MULT 0x101        
-0x00c LOAD MQ           
-0x00d STORE 0x09F       
-0x00e LOAD MQ, 0x102    
-0x00f MULT 0x103        
-0x010 LOAD MQ           
-0x011 ADD 0x09F         
-0x012 STORE 0X09F       
-0x013 LOAD MQ, 0x09F    
-0x014 DIV 0x102         
-0x015 END               
-0x016                   
-0x017                   
-0x018                   
-0x019                   
-0x01a                   
-0x01b                   
-0x01c                   
-0x01d                   
-0x01e                   
-0x01f                   
-0x020                   
-0x021                   
-0x022                   
-0x023                   
-0x024                   
-0x025                   
-0x026                   
-0x027                   
-0x028                   
-0x029                   
-0x02a                   
-0x02b                   
-0x02c                   
-0x02d                   
-0x02e                   
-0x02f                   
-0x030                   
-0x031                   
-0x032                   
-0x033                   
-0x034                   
-0x035                   
-0x036                   
-0x037                   
-0x038                   
-0x039                   
-0x03a                   
-0x03b                   
-0x03c                   
-0x03d                   
-0x03e                   
-0x03f                   
-0x040                   
-0x041                   
+0x00a                   
+0x00b                   
+0x00c                   
+0x00d                   
+0x00e                   
+0x00f                   
+0x010 6                 
+0x011 6                 
+0x012 6                 
+0x013 10                
+0x014                   
+0x015 LOAD 0X01         
+0x016 STORE 0x013       
+0x017 LOAD 1            
+0x018 STORE 0x012       
+0x019 STORE 0x010       
+0x01a LOAD 0x010        
+0x01b STORE 0x011       
+0x01c LOAD 0x011        
+0x01d ADD 1             
+0x01e SUB 0x000         
+0x01f JUMP+ 0x02d       
+0x020 ADD 0x000         
+0x021 STORE 0x011       
+0x022 LOAD EI, 0x011    
+0x023 LOAD EI           
+0x024 SUB 0x013         
+0x025 JUMP- 0x027       
+0x026 JUMP 0x01c        
+0x027 LOAD 0x011        
+0x028 STORE 0x012       
+0x029 LOAD EI, 0x011    
+0x02a LOAD EI           
+0x02b STORE 0x013       
+0x02c JUMP 0X01c        
+0x02d LOAD EI, 0x010    
+0x02e LOAD EI           
+0x02f LOAD EI, 0x012    
+0x030 STORE EI          
+0x031 LOAD 0x013        
+0x032 LOAD EI, 0x010    
+0x033 STORE EI          
+0x034 LOAD 0x010        
+0x035 ADD 1             
+0x036 SUB 0X000         
+0x037 JUMP+ 0X041       
+0x038 ADD 0X000         
+0x039 STORE 0x010       
+0x03a STORE 0x011       
+0x03b LOAD EI, 0x010    
+0x03c LOAD EI           
+0x03d STORE 0x013       
+0x03e LOAD 0x011        
+0x03f STORE 0x012       
+0x040 JUMP 0X01c        
+0x041 END               
 0x042                   
 0x043                   
 0x044                   
@@ -157,7 +157,7 @@
 0x09c                   
 0x09d                   
 0x09e                   
-0x09f 21382             
+0x09f                   
 0x0a0                   
 0x0a1                   
 0x0a2                   
@@ -254,10 +254,10 @@
 0x0fd                   
 0x0fe                   
 0x0ff                   
-0x100 235               
-0x101 3                 
-0x102 899               
-0x103 23                
+0x100                   
+0x101                   
+0x102                   
+0x103                   
 0x104                   
 0x105                   
 0x106                   
