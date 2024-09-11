@@ -8,7 +8,7 @@ Na raiz do projeto estão os arquivos de operação selecao.txt e o paridade.txt
 de uma lista com 4 elementos. Enquanto o paridade.txt é um algoritmo que verifica a paridade de um número, a paridade é vista 
 na célula 0x02 que se for 0, o número é par, caso contrario, se for 1 o número é impar.
 
-As instruções implementadas nesse trabalho foram: LOAD, ADD, SUB, MULT, DIV, STORE, JUMP+, JUMP-, JUMPZ.
+As instruções implementadas nesse trabalho foram: LOAD, ADD, SUB, MULT, DIV, STORE, JUMP+, JUMP-, JUMP e JUMPZ.
 
 Para realizar a ordenação por seleção foi criado o registrador EI, este registrador atua como um endereçamento indireto.
 Sua funcionalidade é guardar endereços. Quando utilizado com LOAD EI, <endereco> transfere o endereco em si para o EI.
