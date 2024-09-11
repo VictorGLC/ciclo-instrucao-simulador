@@ -26,7 +26,7 @@ def verifica_hex(valor): # verifica se um argumento esta em hexadecimal
 def verifica_registrador(valor): # verifica se um argumento é um registrador
     return valor.upper() in registradores
 
-def simula_carry_out(a, b, operacao):
+def simula_carry_out(a, b, operacao): # realiza operação dado dois operandos a e b
     if operacao == 'add':
         resultado = a + b
         if resultado > VALOR_MAX:
@@ -36,7 +36,7 @@ def simula_carry_out(a, b, operacao):
     elif operacao == 'sub':
         resultado = a - b
         if resultado < 0:
-            carry_borrow = 1  # In subtraction, this is often called a "borrow"
+            carry_borrow = 1  # Chamado frequentemente de um "borrow" na subtração
         else:
             carry_borrow = 2
     elif operacao == 'mult':
@@ -48,6 +48,7 @@ def simula_carry_out(a, b, operacao):
 
     return carry_borrow, resultado
 
+# atribui a Z 1, -1 e 0 se o resultado for positivo, negativo ou igual a 0
 def verifica_zero(resultado):
     if resultado > 0:
         registradores['Z'] = 1
@@ -56,6 +57,7 @@ def verifica_zero(resultado):
     else:
         registradores['Z'] = 0
 
+#cria e inicializa um arquivo memoria.data
 def criar_memoria():
     memoria = open('memoria.data','w+b')
     for i in range(1024):
@@ -74,20 +76,20 @@ def imprime_registradores():
     
 def escreve_valores_memoria(arq, memoria): # escreve os valores do arquivo de operações em memoria.data
     linha = arq.readline()
-    while linha != '\n':
-        linha = linha.split()
+    while linha != '\n': # enquanto linha diferente de vazia
+        linha = linha.split() # divide linha em valor e endereço 
         valor = linha[0]
         endereco = linha[1]
 
-        indice = int(endereco, 16)
-        offset_linha = (TAM_LINHA * indice) + ENDERECO
+        indice = int(endereco, 16) # converte hex em int
+        offset_linha = (TAM_LINHA * indice) + ENDERECO # calculo da posição exata onde será escrito
         memoria.seek(offset_linha)
         memoria.write(valor.encode())
         memoria.seek(0)
         linha = arq.readline()
 
 def escreve_instrucoes_memoria(arq, memoria): # escreve as instruções do arquivo de operações em memoria.data
-    offset = (TAM_LINHA * registradores['PC']) + ENDERECO
+    offset = (TAM_LINHA * registradores['PC']) + ENDERECO # calculo da posição exata de escrita da próxima instrução
     prox_inst = registradores['PC'] + 1
     num_instrucoes = 0
     for linha in arq:
@@ -104,7 +106,7 @@ def escreve_instrucoes_memoria(arq, memoria): # escreve as instruções do arqui
 
     return num_instrucoes
 
-def operacao_dados(enderecos, memoria):
+def operacao_dados(enderecos, memoria): # executa operações de acordo com a instrução decodificada no IR
     decodificacao_instrucao(enderecos, memoria)
     if registradores['IR'] == 'LOAD':
         load(enderecos, memoria)
@@ -198,7 +200,7 @@ def div():
         registradores['C'] = 1 if overflow else 2
         verifica_zero(quociente)
 
-def simula_divisao(a, b):
+def simula_divisao(a, b): # realiza e trata divisão e verifica overflow
     if b == 0: # trata divisao por zero
         raise Exception("Erro: Divisão por zero.")
     
@@ -213,7 +215,7 @@ def simula_divisao(a, b):
     return quociente, resto, False
  
 def load(enderecos: list, memoria):
-    if len(enderecos) == 1:
+    if len(enderecos) == 1: # caso haja um endereço
         if enderecos[0].upper() == 'EI':
             memoria.seek(0)
             memoria.seek(TAM_LINHA*int(registradores['EI'])+ENDERECO)
@@ -231,7 +233,7 @@ def load(enderecos: list, memoria):
     else:
         raise Exception("ERRO: Instrução 'LOAD' inválida")
 
-def decodificacao_instrucao(enderecos, memoria):
+def decodificacao_instrucao(enderecos, memoria): ## decodifica instrução baseada nos conteúdos passados e IR e os coloca no MBR depois de determinar como os dados devem ser buscados
     if len(enderecos) == 2 and registradores['IR'] == 'LOAD':
         if verifica_registrador(enderecos[0]) and verifica_hex(enderecos[1]): # caso <registrador>, M(X)
             registradores['MAR'] = int(enderecos[1], 16)
