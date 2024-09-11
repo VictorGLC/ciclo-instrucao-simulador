@@ -12,6 +12,7 @@ registradores = {
     'MBR': '',
     'EAUX': 0, # registrador extra
     'EBUX': 0, # registrador extra
+    'EI': None
 }
 
 TAM_LINHA = 25 # tamanho total que cada linha da memoria.data possui 
@@ -68,7 +69,7 @@ def criar_memoria():
     return memoria
 
 def imprime_registradores():
-    print(f"AC: {registradores['AC']} | MQ: {registradores['MQ']} | C: {registradores['C']} | R: {registradores['R']} | Z: {registradores['Z']} | EAUX: {registradores['EAUX']} | EBUX: {registradores['EBUX']} ")
+    print(f"AC: {registradores['AC']} | MQ: {registradores['MQ']} | C: {registradores['C']} | R: {registradores['R']} | Z: {registradores['Z']} | EAUX: {registradores['EAUX']} | EBUX: {registradores['EBUX']} | EI: {registradores['EI']} ")
     print(f"MAR: {hex(registradores['MAR'])} | MBR: {registradores['MBR']} | IR: {registradores['IR']} | PC: {hex(registradores['PC'])}")
     
 def escreve_valores_memoria(arq, memoria):
@@ -106,7 +107,7 @@ def escreve_instrucoes_memoria(arq, memoria):
 def operacao_dados(enderecos, memoria):
     decodificacao_instrucao(enderecos, memoria)
     if registradores['IR'] == 'LOAD':
-        load(enderecos)
+        load(enderecos, memoria)
     elif len(enderecos) == 1:
         if registradores['IR'] == 'ADD':
             add()
@@ -156,6 +157,7 @@ def store(endereco, memoria):
         memoria.write(str(registradores['AC']).encode())
     elif not verifica_hex(endereco): # se STORE <valor>
         memoria.write(str(endereco).encode())
+
 
 def add():
     a = registradores['AC']
@@ -207,9 +209,14 @@ def simula_divisao(a, b):
     
     return quociente, resto, False
  
-def load(enderecos: list):
+def load(enderecos: list, memoria):
     if len(enderecos) == 1:
-        if verifica_registrador(enderecos[0]): # se LOAD <registrador>
+        if enderecos[0].upper() == 'EI':
+            memoria.seek(0)
+            memoria.seek(TAM_LINHA*int(registradores['EI'])+ENDERECO)
+            registradores['AC'] = int(memoria.readline().decode().rstrip())
+
+        elif verifica_registrador(enderecos[0]): # se LOAD <registrador>
             registradores['AC'] = registradores[enderecos[0].upper()]
 
         else: # se LOAD M(x) ou LOAD <valor>
@@ -241,6 +248,7 @@ def decodificacao_instrucao(enderecos, memoria):
         
         elif not verifica_hex(enderecos[0]):
             registradores['MBR'] = enderecos[0]
+        
     else:
         raise Exception("Instrução inválida")
 
