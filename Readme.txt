@@ -22,3 +22,4 @@ O arquivo de operações da ordenação por seleção funciona da seguinte forma
 - O endereço 0x00 guarda o tamanho da lista
 - Cada elemento da lista está guardado em um endereço de memória
 - Os endereços 0x01 até o endereço n-1 são todos reservados para os elementos da lista
+- O endereço 0x10 guarda o indice da base da lista, o 0x11 guarda o indice atual, o 0x12 guarda o indice do menor elemento e o 0x13 guarda o menor elemento
